@@ -25,7 +25,24 @@ function Actor:getRect()
     return rectangle.new(rectangle_pos.x, rectangle_pos.y, self.hitbox.x, self.hitbox.y)
 end
 
-function Actor:move(dest)
+function Actor:canMove(axis, step)
+    local prevPos = { x = self.position.x, y = self.position.y }
+    self.position[axis] = self.position[axis] + step
+
+    for i=1, #physicsworld.solids do
+        local colliding = rectangle.checkCollision(self:getRect(), physicsworld.solids[i]:getRect())
+
+        if colliding then
+            self.position = prevPos
+            return false
+        end
+    end
+
+    self.position = prevPos
+    return true
+end
+
+function Actor:moveAndCollide(dest)
     dest.x = math.floor(dest.x+0.5)
     dest.y = math.floor(dest.y+0.5)
 
@@ -36,66 +53,31 @@ function Actor:move(dest)
 
     local moved = false
     local collided = false
-
-    -- Move in x direction
-    if dest.x ~= self.position.x then
-        local prevX = self.position.x
-        local loopdone = false
-        while (true) do
-            for i=1, #physicsworld.solids do
-                local colliding = rectangle.checkCollision(self:getRect(), physicsworld.solids[i]:getRect())
     
-                if colliding then
-                    self.position.x = prevX
-                    self.velocity.x = 0
-                    collided = true
-                    loopdone= true
-                    break
-                end
-            end
-            if self.position.x == dest.x then
-                break
-            end
-            if loopdone then
-                break
-            end
-            prevX = self.position.x
-            self.position.x = self.position.x + stepX
-            moved = true
-        end
+    -- Move in x axis
+    while (dest.x ~= self.position.x and self:canMove("x", stepX)) do
+        self.position.x = self.position.x + stepX
+        moved = true
     end
 
-    -- Move in y direction
-    if dest.y ~= self.position.y then
-        local prevY = self.position.y
-        loopdone = false
-     
-        while (true) do
-            for i=1, #physicsworld.solids do
-                local colliding = rectangle.checkCollision(self:getRect(), physicsworld.solids[i]:getRect())
-    
-                if colliding then
-                    self.position.y = prevY
-                    self.velocity.y = 0
-                    loopdone = true
-                    collided = true
-                    break
-                end
-            end
-            if (self.position.y == dest.y) then
-                break
-            end
-            if loopdone then
-                break
-            end
-            prevY = self.position.y
-            self.position.y = self.position.y + stepY
-            moved = true
-        end
+    if (self.position.x ~= dest.x) then
+        self.velocity.x = 0
+        collided = true
     end
-   
+
+    -- Move in y axis
+    while (dest.y ~= self.position.y and self:canMove("y", stepY)) do
+        self.position.y = self.position.y + stepY
+        moved = true
+    end
+
+    if (self.position.y ~= dest.y) then
+        self.velocity.y = 0
+        collided = true
+    end
+
     -- If we are inside the block to being with then move freely
-    if (collided and (not moved)) then
+    if (not self:canMove("y", 0)) then
         self.position.x = dest.x
         self.velocity = prevVel
         self.position.y = dest.y
@@ -106,23 +88,15 @@ function Actor:move(dest)
 end
 
 function Actor:isOnGround()
-    local prevY = self.position.y
-    local res = false
-
-    if self:move(vector.add(self.position, vector.new(0,1))) then
-        res = true
-    end
-
-    self.position.y = prevY
-    
-    return res
+    return not self:canMove("y", 1)
 end
 
 function Actor:isTouchingWall()
+    return (not self:canMove("x", 1)) or (not self:canMove("x", -1))
 end
 
 function Actor:update()
-    self:move(vector.add(self.position, vector.scale(self.velocity, love.timer.getDelta())))
+    self:moveAndCollide(vector.add(self.position, vector.scale(self.velocity, love.timer.getDelta())))
 
     -- Gravity Acceleration
     if vector.length(vector.subtract(self.velocity, self.gravity)) > self.maxgravitypull then
