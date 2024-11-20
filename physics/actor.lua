@@ -12,7 +12,8 @@ function Actor:new(position)
         jumpforce = 500,
         walkaccel = 130,
         maxwalkvel = 250,
-        maxgravitypull = 200
+        maxgravitypull = 200,
+        lastTimeIsOnGround = 0
     }
     setmetatable(o, self)
     self.__index = self
@@ -63,8 +64,6 @@ function Actor:move(dest)
             moved = true
         end
     end
-
-   
 
     -- Move in y direction
     if dest.y ~= self.position.y then
@@ -129,14 +128,17 @@ function Actor:update()
     if vector.length(vector.subtract(self.velocity, self.gravity)) > self.maxgravitypull then
         self.velocity = vector.add(self.velocity, vector.scale(self.gravity, love.timer.getDelta()))
     end
-    
 
     -- Resistance
     self.velocity.x = self.velocity.x / (1+love.timer.getDelta()*100)
+
+    if self:isOnGround() then
+        self.lastTimeIsOnGround = love.timer.getTime()
+    end
 end
 
 function Actor:jump()
-    if self:isOnGround() then
+    if (love.timer.getTime() - self.lastTimeIsOnGround) < 0.08 then
         self.velocity.y = -self.jumpforce
     end
 end
