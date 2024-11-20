@@ -37,59 +37,65 @@ function Actor:move(dest)
     local collided = false
 
     -- Move in x direction
-    local prevX = self.position.x
-    local loopdone = false
-    while (true) do
-        
-        for i=1, #physicsworld.solids do
-            local colliding = rectangle.checkCollision(self:getRect(), physicsworld.solids[i]:getRect())
-
-            if colliding then
-                self.position.x = prevX
-                self.velocity.x = 0
-                collided = true
-                loopdone= true
+    if dest.x ~= self.position.x then
+        local prevX = self.position.x
+        local loopdone = false
+        while (true) do
+            for i=1, #physicsworld.solids do
+                local colliding = rectangle.checkCollision(self:getRect(), physicsworld.solids[i]:getRect())
+    
+                if colliding then
+                    self.position.x = prevX
+                    self.velocity.x = 0
+                    collided = true
+                    loopdone= true
+                    break
+                end
+            end
+            if self.position.x == dest.x then
                 break
             end
+            if loopdone then
+                break
+            end
+            prevX = self.position.x
+            self.position.x = self.position.x + stepX
+            moved = true
         end
-        if self.position.x == dest.x then
-            break
-        end
-        if loopdone then
-            break
-        end
-        prevX = self.position.x
-        self.position.x = self.position.x + stepX
-        moved = true
     end
+
+   
 
     -- Move in y direction
-    local prevY = self.position.y
-    loopdone = false
- 
-    while (true) do
-        for i=1, #physicsworld.solids do
-            local colliding = rectangle.checkCollision(self:getRect(), physicsworld.solids[i]:getRect())
-
-            if colliding then
-                self.position.y = prevY
-                self.velocity.y = 0
-                loopdone = true
-                collided = true
+    if dest.y ~= self.position.y then
+        local prevY = self.position.y
+        loopdone = false
+     
+        while (true) do
+            for i=1, #physicsworld.solids do
+                local colliding = rectangle.checkCollision(self:getRect(), physicsworld.solids[i]:getRect())
+    
+                if colliding then
+                    self.position.y = prevY
+                    self.velocity.y = 0
+                    loopdone = true
+                    collided = true
+                    break
+                end
+            end
+            if (self.position.y == dest.y) then
                 break
             end
+            if loopdone then
+                break
+            end
+            prevY = self.position.y
+            self.position.y = self.position.y + stepY
+            moved = true
         end
-        if (self.position.y == dest.y) then
-            break
-        end
-        if loopdone then
-            break
-        end
-        prevY = self.position.y
-        self.position.y = self.position.y + stepY
-        moved = true
     end
-    
+   
+    -- If we are inside the block to being with then move freely
     if (collided and (not moved)) then
         self.position.x = dest.x
         self.velocity = prevVel
@@ -98,6 +104,22 @@ function Actor:move(dest)
     end
 
     return collided
+end
+
+function Actor:isOnGround()
+    local prevY = self.position.y
+    local res = false
+
+    if self:move(vector.add(self.position, vector.new(0,1))) then
+        res = true
+    end
+
+    self.position.y = prevY
+    
+    return res
+end
+
+function Actor:isTouchingWall()
 end
 
 function Actor:update()
@@ -114,7 +136,9 @@ function Actor:update()
 end
 
 function Actor:jump()
-    self.velocity.y = -self.jumpforce
+    if self:isOnGround() then
+        self.velocity.y = -self.jumpforce
+    end
 end
 
 function Actor:walkRight()
