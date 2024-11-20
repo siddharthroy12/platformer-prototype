@@ -185,6 +185,10 @@ local function draw_layer_object(self)
         --Setting layer color 
         love.graphics.setColor(self.color)
         --Draw batch
+        love.graphics.setColor(0,0,0)
+        love.graphics.draw(cache.batch[self.tileset.uid],5,5,0,2,2)
+        --Setting layer color 
+        love.graphics.setColor(self.color)
         love.graphics.draw(cache.batch[self.tileset.uid],0,0,0,2,2)
 
         --Resotring old color
