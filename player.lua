@@ -7,7 +7,7 @@ player = {
 }
 
 player.init = function()
-    player.actor = Actor:new(vector.new(32*2,32*2))
+    player.actor = Actor:new(vector.new(32*5,32*5))
 end
 
 
@@ -25,13 +25,11 @@ end
 
 
 player.update = function()
-    player.actor:update()
-
-    if love.keyboard.isDown("right") then
-        player.actor:walkLeft()
-    end
-    if love.keyboard.isDown("left") then
+    if love.keyboard.isDown("d") then
         player.actor:walkRight()
+    end
+    if love.keyboard.isDown("a") then
+        player.actor:walkLeft()
     end
 
     if love.keyboard.isDown("space") then
@@ -42,5 +40,8 @@ player.update = function()
     else
         jumpButtonWasDownInPreviousFrame = false
     end
+
+    player.actor:update()
+
 
 end

@@ -10,8 +10,9 @@ function Actor:new(position)
         hitbox = {x = 32, y = 32},
         gravity = {x = 0, y = 1500},
         jumpforce = 500,
-        walkaccel = 200,
-        maxwalkaccel = 50,
+        walkaccel = 130,
+        maxwalkvel = 250,
+        maxgravitypull = 200
     }
     setmetatable(o, self)
     self.__index = self
@@ -24,8 +25,8 @@ function Actor:getRect()
 end
 
 function Actor:move(dest)
-    dest.x = math.floor(dest.x)
-    dest.y = math.floor(dest.y)
+    dest.x = math.floor(dest.x+0.5)
+    dest.y = math.floor(dest.y+0.5)
 
     local prevVel = {x=self.velocity.x, y=self.velocity.y}
 
@@ -103,7 +104,10 @@ function Actor:update()
     self:move(vector.add(self.position, vector.scale(self.velocity, love.timer.getDelta())))
 
     -- Gravity Acceleration
-    self.velocity = vector.add(self.velocity, vector.scale(self.gravity, love.timer.getDelta()))
+    if vector.length(vector.subtract(self.velocity, self.gravity)) > self.maxgravitypull then
+        self.velocity = vector.add(self.velocity, vector.scale(self.gravity, love.timer.getDelta()))
+    end
+    
 
     -- Resistance
     self.velocity.x = self.velocity.x / (1+love.timer.getDelta()*100)
@@ -113,12 +117,16 @@ function Actor:jump()
     self.velocity.y = -self.jumpforce
 end
 
-function Actor:walkLeft()
-    self.velocity.x = self.velocity.x + self.walkaccel
+function Actor:walkRight()
+    if self.velocity.x < self.maxwalkvel then
+        self.velocity.x = self.velocity.x + self.walkaccel
+    end
 end
 
-function Actor:walkRight()
-    self.velocity.x = self.velocity.x - self.walkaccel
+function Actor:walkLeft()
+    if self.velocity.x > -self.maxwalkvel then
+        self.velocity.x = self.velocity.x - self.walkaccel
+    end
 end
 
 function Actor:grabWall()

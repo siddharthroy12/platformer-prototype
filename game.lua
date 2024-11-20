@@ -37,8 +37,6 @@ end
 game.draw = function()
     drawAnimatedBackground()
     currentLevel:draw()
-
-    
     player.draw()
 end
 

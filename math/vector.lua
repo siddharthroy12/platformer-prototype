@@ -21,6 +21,9 @@ vector.scale = function(v1, value)
     return {x= v1.x * value, y= v1.y * value}
 end
 
+vector.length = function (v)
+    return math.sqrt(v.x * v.x + v.y * v.y)
+end
 
 vector.multiply = function(v1, v2)
     return vec2(v1.x * v2.x, v1.y * v2.y)
