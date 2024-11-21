@@ -28,9 +28,23 @@ player.update = function()
     if love.keyboard.isDown("d") then
         player.actor:walkRight()
     end
+
     if love.keyboard.isDown("a") then
         player.actor:walkLeft()
     end
+
+    if love.keyboard.isDown("w") then
+        player.actor:climbUp()
+    end
+
+    if love.keyboard.isDown("s") then
+        player.actor:climbDown()
+    end
+
+    if love.keyboard.isDown("return") then
+        player.actor:dash()
+    end
+
 
     if love.keyboard.isDown("space") then
         if not jumpButtonWasDownInPreviousFrame then

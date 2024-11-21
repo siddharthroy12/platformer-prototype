@@ -13,7 +13,12 @@ function Actor:new(position)
         walkaccel = 130,
         maxwalkvel = 250,
         maxgravitypull = 200,
-        lastTimeIsOnGround = 0
+        lastTimeIsOnGround = 0,
+        wantToGo = { x = 0, y = 0},
+        dashPower = 1000,
+        dashing = false,
+        dashStartedAt = 0,
+        onGroundAfterDash = true
     }
     setmetatable(o, self)
     self.__index = self
@@ -96,37 +101,75 @@ function Actor:isTouchingWall()
 end
 
 function Actor:update()
-    self:moveAndCollide(vector.add(self.position, vector.scale(self.velocity, love.timer.getDelta())))
+    self.wantToGo = vector.new(0, 0)
+    local collided = self:moveAndCollide(vector.add(self.position, vector.scale(self.velocity, love.timer.getDelta())))
 
-    -- Gravity Acceleration
-    if vector.length(vector.subtract(self.velocity, self.gravity)) > self.maxgravitypull then
-        self.velocity = vector.add(self.velocity, vector.scale(self.gravity, love.timer.getDelta()))
+    if collided then
+        self:stopDash()
     end
 
-    -- Resistance
-    self.velocity.x = self.velocity.x / (1+love.timer.getDelta()*100)
+    if (not self.dashing) then
+        -- Gravity Acceleration
+        if vector.length(vector.subtract(self.velocity, self.gravity)) > self.maxgravitypull then
+            self.velocity = vector.add(self.velocity, vector.scale(self.gravity, love.timer.getDelta()))
+        end
 
+        -- Resistance
+        self.velocity.x = self.velocity.x / (1+love.timer.getDelta()*100)
+    else
+        if (love.timer.getTime() - self.dashStartedAt >= 0.01) then
+            self:stopDash()
+        end
+    end
+  
     if self:isOnGround() then
+        self.onGroundAfterDash = true
         self.lastTimeIsOnGround = love.timer.getTime()
     end
 end
 
 function Actor:jump()
-    if (love.timer.getTime() - self.lastTimeIsOnGround) < 0.08 then
+    if (love.timer.getTime() - self.lastTimeIsOnGround) < 0.08 and not self.dashing then
         self.velocity.y = -self.jumpforce
     end
 end
 
 function Actor:walkRight()
-    if self.velocity.x < self.maxwalkvel then
+    self.wantToGo.x = 1
+
+    if self.velocity.x < self.maxwalkvel and not self.dashing then
         self.velocity.x = self.velocity.x + self.walkaccel
     end
 end
 
 function Actor:walkLeft()
-    if self.velocity.x > -self.maxwalkvel then
+    self.wantToGo.x = -1
+
+    if self.velocity.x > -self.maxwalkvel and not self.dashing then
         self.velocity.x = self.velocity.x - self.walkaccel
     end
+end
+
+function Actor:climbUp()
+    self.wantToGo.y = -1
+end
+
+function Actor:climbDown()
+    self.wantToGo.y = 1
+end
+
+function Actor:dash()
+    if self.onGroundAfterDash then
+        self.onGroundAfterDash = false
+        self.dashing = true
+        self.dashStartedAt = love.timer.getTime()
+        self.velocity = vector.scale(self.wantToGo, self.dashPower)
+    end
+end
+
+function Actor:stopDash()
+    self.dashing = false
+    self.velocity = vector.scale(self.velocity, 0.5)
 end
 
 function Actor:grabWall()
