@@ -9,7 +9,7 @@ function Actor:new(position)
         velocity = {x=0, y=0},
         hitbox = {x = 32, y = 32},
         gravity = {x = 0, y = 1500},
-        jumpforce = 500,
+        jumpforce = 400,
         walkaccel = 130,
         maxwalkvel = 250,
         maxgravitypull = 200,
