@@ -30,9 +30,9 @@ vector.multiply = function(v1, v2)
 end
 
 vector.normalize = function(v)
-    local length = vec2_length(v)
-    if length == 0 then return vec2(0, 0) end
-    return vec2_scale(v, 1 / length)
+    local length = vector.length(v)
+    if length == 0 then return vector.new(0, 0) end
+    return vector.scale(v, 1 / length)
 end
 
 return vector

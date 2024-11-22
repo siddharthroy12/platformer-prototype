@@ -15,10 +15,11 @@ function Actor:new(position)
         maxgravitypull = 200,
         lastTimeIsOnGround = 0,
         wantToGo = { x = 0, y = 0},
-        dashPower = 1000,
+        dashPower = 500,
+        dashDuration = 0.1,
         dashing = false,
         dashStartedAt = 0,
-        onGroundAfterDash = true
+        onGroundAfterDash = true,
     }
     setmetatable(o, self)
     self.__index = self
@@ -104,10 +105,6 @@ function Actor:update()
     self.wantToGo = vector.new(0, 0)
     local collided = self:moveAndCollide(vector.add(self.position, vector.scale(self.velocity, love.timer.getDelta())))
 
-    if collided then
-        self:stopDash()
-    end
-
     if (not self.dashing) then
         -- Gravity Acceleration
         if vector.length(vector.subtract(self.velocity, self.gravity)) > self.maxgravitypull then
@@ -117,7 +114,7 @@ function Actor:update()
         -- Resistance
         self.velocity.x = self.velocity.x / (1+love.timer.getDelta()*100)
     else
-        if (love.timer.getTime() - self.dashStartedAt >= 0.01) then
+        if (love.timer.getTime() - self.dashStartedAt >= self.dashDuration) then
             self:stopDash()
         end
     end
@@ -163,7 +160,7 @@ function Actor:dash()
         self.onGroundAfterDash = false
         self.dashing = true
         self.dashStartedAt = love.timer.getTime()
-        self.velocity = vector.scale(self.wantToGo, self.dashPower)
+        self.velocity = vector.scale(vector.normalize(self.wantToGo), self.dashPower)
     end
 end
 

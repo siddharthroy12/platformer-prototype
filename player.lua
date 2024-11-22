@@ -1,6 +1,7 @@
 local vector = require "math/vector"
 local Actor = require "physics/actor"
 local jumpButtonWasDownInPreviousFrame = false
+local dashButtonWasDownInPreviousFrame = false
 
 player = {
     actor = nil
@@ -42,7 +43,12 @@ player.update = function()
     end
 
     if love.keyboard.isDown("return") then
-        player.actor:dash()
+        if not dashButtonWasDownInPreviousFrame then
+            player.actor:dash()
+        end
+        dashButtonWasDownInPreviousFrame = true
+    else
+        dashButtonWasDownInPreviousFrame = false
     end
 
 
