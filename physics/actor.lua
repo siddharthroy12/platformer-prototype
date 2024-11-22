@@ -41,7 +41,7 @@ function Actor:getRect(half)
     local rect = rectangle.new(rectangle_pos.x, rectangle_pos.y, self.hitbox.x, self.hitbox.y)
 
     if half then
-        rect.height = rect.height / 3
+        rect.height = rect.height / 3 -- Not half I know
     end
     return rect
 end
