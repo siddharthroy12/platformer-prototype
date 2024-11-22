@@ -42,7 +42,13 @@ player.update = function()
         player.actor:climbDown()
     end
 
-    if love.keyboard.isDown("return") then
+    if love.keyboard.isDown("q") then
+        player.actor:grabWall()
+    else
+        player.actor:releaseWall()
+    end
+
+    if love.keyboard.isDown("c") then
         if not dashButtonWasDownInPreviousFrame then
             player.actor:dash()
         end

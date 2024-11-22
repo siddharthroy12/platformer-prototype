@@ -24,29 +24,56 @@ function Actor:new(position)
         dashing = false,
         dashStartedAt = 0,
         onGroundAfterDash = true,
+        grabbingWall = false,
+        climbUpSpeed = 100,
+        climbDownSpeed = 150,
+        timeSinceLastTimeOnGround = 0,
+        timeSinceLastJumped = 0,
+        wallJumped = false,
     }
     setmetatable(o, self)
     self.__index = self
     return o
 end
 
-function Actor:getRect()
+function Actor:getRect(half)
     rectangle_pos = (vector.subtract(self.position, vector.divide(self.hitbox, 2)))
-    return rectangle.new(rectangle_pos.x, rectangle_pos.y, self.hitbox.x, self.hitbox.y)
+    local rect = rectangle.new(rectangle_pos.x, rectangle_pos.y, self.hitbox.x, self.hitbox.y)
+
+    if half then
+        rect.height = rect.height / 3
+    end
+    return rect
 end
 
-function Actor:canMove(axis, step)
+function Actor:canMove(axis, step, halfHitbox)
     local prevPos = { x = self.position.x, y = self.position.y }
     self.position[axis] = self.position[axis] + step
 
+    -- Check if there is more wall upward so actor can go up or down
+    if axis == "y" and self.grabbingWall and not self.wallJumped and not self.dashing then
+        if step > 0 then
+            self.position.y = self.position.y - (self.hitbox.y)
+        end
+        if step < 0 then
+            self.position.y = self.position.y - (self.hitbox.y)
+        end
+        if not self:isTouchingWall() then
+            self.position = prevPos
+            return false
+        end
+    end
+
     for i=1, #physicsworld.solids do
-        local colliding = rectangle.checkCollision(self:getRect(), physicsworld.solids[i]:getRect())
+        local colliding = rectangle.checkCollision(self:getRect(halfHitbox), physicsworld.solids[i]:getRect())
 
         if colliding then
             self.position = prevPos
             return false
         end
     end
+
+  
 
     self.position = prevPos
     return true
@@ -102,14 +129,17 @@ function Actor:isOnGround()
 end
 
 function Actor:isTouchingWall()
-    return (not self:canMove("x", 1)) or (not self:canMove("x", -1))
+    return (not self:canMove("x", 1, true)) or (not self:canMove("x", -1, true))
 end
 
 function Actor:update()
     self.wantToGo = vector.new(0, 0)
     local collided = self:moveAndCollide(vector.add(self.position, vector.scale(self.velocity, love.timer.getDelta())))
 
-    if (not self.dashing) then
+    self.timeSinceLastTimeOnGround = love.timer.getTime() - self.lastTimeIsOnGround
+    self.timeSinceLastJumped = love.timer.getTime() - self.lastTimeJumped
+
+    if (not self.dashing and not self.grabbingWall or self.wallJumped) then
         -- Gravity Acceleration
         if vector.length(vector.subtract(self.velocity, self.gravity)) > self.maxgravitypull then
             self.velocity = vector.add(self.velocity, vector.scale(self.gravity, love.timer.getDelta()))
@@ -117,7 +147,13 @@ function Actor:update()
 
         -- Resistance
         self.velocity.x = self.velocity.x / (1+love.timer.getDelta()*100)
-    else
+    end
+
+    if self.velocity.y >=0  then
+        self.wallJumped = false
+    end
+
+    if self.dashing then
         if (love.timer.getTime() - self.dashStartedAt >= self.dashDuration) then
             self:stopDash()
         end
@@ -130,15 +166,27 @@ function Actor:update()
         self.onGroundAfterDash = true
         self.lastTimeIsOnGround = love.timer.getTime()
     end
+
+    if not self:isTouchingWall() then
+        self.grabbingWall = false
+    end
+
 end
 
 function Actor:jump()
     self.jumpPressedOn = love.timer.getTime()
-    local timeSinceLastTimeOnGround = love.timer.getTime() - self.lastTimeIsOnGround
-    local timeSinceLastJumped = love.timer.getTime() - self.lastTimeJumped
-    
-    if timeSinceLastTimeOnGround < self.cayote_time and timeSinceLastJumped > self.cayote_time and not self.dashing then
+    if (self.timeSinceLastTimeOnGround < self.cayote_time and self.timeSinceLastJumped > self.cayote_time and not self.dashing) or self.grabbingWall then
         self.lastTimeJumped = love.timer.getTime()
+
+        if self.grabbingWall then
+            if self.wantToGo.x ~= 0 then
+                self:releaseWall()
+                self.velocity = vector.scale(vector.normalize(vector.new(self.wantToGo.x, -1)), self.dashPower)
+                return
+            else
+                self.wallJumped = true
+            end
+        end
         self.velocity.y = -self.jumpforce
     end
 end
@@ -146,7 +194,7 @@ end
 function Actor:walkRight()
     self.wantToGo.x = 1
 
-    if self.velocity.x < self.maxwalkvel and not self.dashing then
+    if self.velocity.x < self.maxwalkvel and not self.dashing and not self.grabbingWall then
         self.velocity.x = self.velocity.x + self.walkaccel
     end
 end
@@ -154,21 +202,36 @@ end
 function Actor:walkLeft()
     self.wantToGo.x = -1
 
-    if self.velocity.x > -self.maxwalkvel and not self.dashing then
+    if self.velocity.x > -self.maxwalkvel and not self.dashing and not self.grabbingWall then
         self.velocity.x = self.velocity.x - self.walkaccel
     end
 end
 
 function Actor:climbUp()
     self.wantToGo.y = -1
+
+    if (self.grabbingWall and not self.dashing) then
+        self.velocity.y = -self.climbUpSpeed
+    end
 end
 
 function Actor:climbDown()
     self.wantToGo.y = 1
+
+    local canGoDown = false
+    self.position.y = self.position.y + self.hitbox.y
+
+    canGoDown = self:isTouchingWall()
+
+    self.position.y = self.position.y - self.hitbox.y
+
+    if (self.grabbingWall and not self.dashing) then
+        self.velocity.y = self.climbDownSpeed
+    end
 end
 
 function Actor:dash()
-    if self.onGroundAfterDash then
+    if self.onGroundAfterDash and (self.wantToGo.x ~= 0 or self.wantToGo.y ~= 0) then
         self.onGroundAfterDash = false
         self.dashing = true
         self.dashStartedAt = love.timer.getTime()
@@ -182,6 +245,16 @@ function Actor:stopDash()
 end
 
 function Actor:grabWall()
+    if self:isTouchingWall() then
+        if not self.dashing and self.wantToGo.y == 0 and not self.wallJumped then
+            self.velocity = vector.new(0,0)
+        end
+        self.grabbingWall = true
+    end
+end
+
+function Actor:releaseWall()
+    self.grabbingWall = false
 end
 
 return Actor
