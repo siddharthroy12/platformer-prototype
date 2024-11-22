@@ -10,6 +10,8 @@ function Actor:new(position)
         hitbox = {x = 32, y = 32},
         gravity = {x = 0, y = 1500},
         jumpforce = 400,
+        jumpPressedOn = 0,
+        earlyJumpTime = 0.2,
         lastTimeJumped = 0,
         cayote_time = 0.2,
         walkaccel = 130,
@@ -122,14 +124,19 @@ function Actor:update()
     end
   
     if self:isOnGround() then
+        if love.timer.getTime() - self.jumpPressedOn < self.earlyJumpTime then
+            self:jump()
+        end
         self.onGroundAfterDash = true
         self.lastTimeIsOnGround = love.timer.getTime()
     end
 end
 
 function Actor:jump()
+    self.jumpPressedOn = love.timer.getTime()
     local timeSinceLastTimeOnGround = love.timer.getTime() - self.lastTimeIsOnGround
     local timeSinceLastJumped = love.timer.getTime() - self.lastTimeJumped
+    
     if timeSinceLastTimeOnGround < self.cayote_time and timeSinceLastJumped > self.cayote_time and not self.dashing then
         self.lastTimeJumped = love.timer.getTime()
         self.velocity.y = -self.jumpforce
