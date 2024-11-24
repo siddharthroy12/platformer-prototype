@@ -1,7 +1,6 @@
 local vector = require "math/vector"
 local Actor = require "physics/actor"
-local jumpButtonWasDownInPreviousFrame = false
-local dashButtonWasDownInPreviousFrame = false
+local controls = require "controls"
 
 player = {
     actor = nil
@@ -10,7 +9,6 @@ player = {
 player.init = function()
     player.actor = Actor:new(vector.new(32*5,32*5))
 end
-
 
 player.draw = function()
     love.graphics.setColor(1,1,1)
@@ -23,51 +21,38 @@ player.draw = function()
     love.graphics.rectangle("fill", rectangle_pos.x, rectangle_pos.y,transformed_hitbox.x, transformed_hitbox.y)
 end
 
-
-
 player.update = function()
-    if love.keyboard.isDown("d") then
+
+    -- Keyboard controls
+    if controls.isRightDown() then
         player.actor:walkRight()
     end
 
-    if love.keyboard.isDown("a") then
+    if controls.isLeftDown() then
         player.actor:walkLeft()
     end
 
-    if love.keyboard.isDown("w") then
+    if controls.isUpDown() then
         player.actor:climbUp()
     end
 
-    if love.keyboard.isDown("s") then
+    if controls.isDownDown() then
         player.actor:climbDown()
     end
 
-    if love.keyboard.isDown("q") then
+    if controls.isGrabDown() then
         player.actor:grabWall()
     else
         player.actor:releaseWall()
     end
 
-    if love.keyboard.isDown("c") then
-        if not dashButtonWasDownInPreviousFrame then
-            player.actor:dash()
-        end
-        dashButtonWasDownInPreviousFrame = true
-    else
-        dashButtonWasDownInPreviousFrame = false
+    if controls.isDashPressed() then
+       player.actor:dash()
     end
 
-
-    if love.keyboard.isDown("space") then
-        if not jumpButtonWasDownInPreviousFrame then
-            player.actor:jump()
-        end
-        jumpButtonWasDownInPreviousFrame = true
-    else
-        jumpButtonWasDownInPreviousFrame = false
+    if controls.isJumpPressed() then
+        player.actor:jump()
     end
 
     player.actor:update()
-
-
 end
