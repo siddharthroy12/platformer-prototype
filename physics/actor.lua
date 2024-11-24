@@ -48,21 +48,23 @@ end
 
 function Actor:canMove(axis, step, halfHitbox)
     local prevPos = { x = self.position.x, y = self.position.y }
-    self.position[axis] = self.position[axis] + step
+    self.position[axis] = prevPos[axis] + step
 
     -- Check if there is more wall upward so actor can go up or down
     if axis == "y" and self.grabbingWall and not self.wallJumped and not self.dashing then
         if step > 0 then
-            self.position.y = self.position.y - (self.hitbox.y)
+            self.position.y = self.position.y - (self.hitbox.y / 2)
         end
         if step < 0 then
-            self.position.y = self.position.y - (self.hitbox.y)
+            self.position.y = self.position.y - (self.hitbox.y / 2)
         end
         if not self:isTouchingWall() then
             self.position = prevPos
             return false
         end
+        self.position[axis] = prevPos[axis] + step
     end
+
 
     for i=1, #physicsworld.solids do
         local colliding = rectangle.checkCollision(self:getRect(halfHitbox), physicsworld.solids[i]:getRect())
@@ -176,15 +178,22 @@ end
 function Actor:jump()
     self.jumpPressedOn = love.timer.getTime()
     if (self.timeSinceLastTimeOnGround < self.cayote_time and self.timeSinceLastJumped > self.cayote_time and not self.dashing) or self.grabbingWall then
+        if self.dashing then
+            self.dashing = false
+        end
         self.lastTimeJumped = love.timer.getTime()
 
         if self.grabbingWall then
+            self.wallJumped = true
             if self.wantToGo.x ~= 0 then
                 self:releaseWall()
-                self.velocity = vector.scale(vector.normalize(vector.new(self.wantToGo.x, -1)), self.dashPower)
+                if self:canMove("x", self.wantToGo.x, true) then
+                    self.velocity = vector.scale(vector.normalize(vector.new(self.wantToGo.x, -1)), self.dashPower)
+                else
+                    self.velocity = vector.scale(vector.normalize(vector.new(-self.wantToGo.x, -1)), self.dashPower)
+                end
+                
                 return
-            else
-                self.wallJumped = true
             end
         end
         self.velocity.y = -self.jumpforce
