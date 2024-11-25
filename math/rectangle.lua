@@ -9,4 +9,9 @@ rectangle.checkCollision = function(rec1, rec2)
     rec1.y < rec2.y + rec2.height and rec1.y + rec1.height > rec2.y
 end
 
+rectangle.isPointInside = function(rec, p)
+    return p.x >= rec.x and p.x <= rec.x + rec.width and
+           p.y >= rec.y and p.y <= rec.y + rec.height
+end
+
 return rectangle

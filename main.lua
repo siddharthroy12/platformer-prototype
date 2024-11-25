@@ -1,6 +1,8 @@
 require "background"
 require "settings"
-require "game"
+local mainscene = require "scenes/mainscene"
+local scenemanager = require "scenemanager"
+local transition = require "transition"
 
 function love.load()
     love.window.setMode(CANVAS_WIDTH, CANVAS_HEIGHT, {
@@ -8,15 +10,19 @@ function love.load()
     })
     love.graphics.setDefaultFilter("nearest", "nearest")
     canvas = love.graphics.newCanvas(CANVAS_WIDTH, CANVAS_HEIGHT)
-    game.load()
+
+    love.graphics.setNewFont("data/font/retro-pixel-cute-prop.ttf", 11*FONT_SCALE)
+    scenemanager:changeScene(mainscene)
 end
+
 
 function love.draw()
     -- Rectangle is drawn to the canvas with the regular/default alpha blend mode ("alphamultiply").
     love.graphics.setCanvas(canvas)
     love.graphics.clear(0, 0, 0, 0)
     love.graphics.setBlendMode("alpha")
-    game.draw()
+    scenemanager.currentScene:draw()
+    transition.draw()
     love.graphics.setCanvas()
 
     local scale =  math.min(love.graphics.getWidth()/CANVAS_WIDTH, love.graphics.getHeight()/CANVAS_HEIGHT)
@@ -30,5 +36,6 @@ function love.draw()
 end
 
 function love.update()
-    game.update()
+    scenemanager.currentScene:update()
+    transition.update()
 end

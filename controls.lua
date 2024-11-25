@@ -84,15 +84,138 @@ controls.isGrabDown = function()
 end
 
 controls.isLeftClicked = function()
+    local joystickLeftDown = false
+    local keyboardLeftDown = false
+
+    if joystick ~= nil then
+        if joystick:getGamepadAxis("leftx") < -0.5 or joystick:isGamepadDown("dpleft") then
+            joystickLeftDown = true
+        end
+    end
+
+    if love.keyboard.isDown("a") then
+        keyboardLeftDown = true
+    end
+
+    if joystickLeftDown or keyboardLeftDown then
+        if not controls.leftWasDownInPreviousFrame then
+            controls.leftWasDownInPreviousFrame = true
+            return true
+        end
+        controls.leftWasDownInPreviousFrame = true
+    else
+        controls.leftWasDownInPreviousFrame = false
+    end
+
+    return false
 end
 
-controls.isRighClicked = function()
+controls.isRightClicked = function()
+    local joystickRightDown = false
+    local keyboardRightDown = false
+
+    if joystick ~= nil then
+        if joystick:getGamepadAxis("leftx") > 0.5 or joystick:isGamepadDown("dpright") then
+            joystickRightDown = true
+        end
+    end
+
+    if love.keyboard.isDown("d") then
+        keyboardRightDown = true
+    end
+
+    if joystickRightDown or keyboardRightDown then
+        if not controls.rightWasDownInPreviousFrame then
+            controls.rightWasDownInPreviousFrame = true
+            return true
+        end
+        controls.rightWasDownInPreviousFrame = true
+    else
+        controls.rightWasDownInPreviousFrame = false
+    end
+
+    return false
+end
+
+controls.isPausePressed = function()
+    local keyboardPauseDown = false
+    local controllerPauseDown = false
+
+    if love.keyboard.isDown("escape") then
+        keyboardPauseDown = true
+    end
+
+    if joystick ~= nil then
+        if joystick:isGamepadDown("start") then
+            controllerPauseDown = true
+        end
+    end
+
+    if keyboardPauseDown or controllerPauseDown then
+        if not controls.pauseWasDownInPreviousFrame then
+            controls.pauseWasDownInPreviousFrame = true
+            return true
+        end
+        controls.pauseWasDownInPreviousFrame = true
+    else
+        controls.pauseWasDownInPreviousFrame = false
+    end
+
+    return false
 end
 
 controls.isUpClicked = function()
+    local joystickUpDown = false
+    local keyboardUpDown = false
+
+    if joystick ~= nil then
+        if joystick:getGamepadAxis("lefty") < -0.5 or joystick:isGamepadDown("dpup") then
+            joystickUpDown = true
+        end
+    end
+
+    if love.keyboard.isDown("w") then
+        keyboardUpDown = true
+    end
+
+    if joystickUpDown or keyboardUpDown then
+        if not controls.upWasDownInPreviousFrame then
+            controls.upWasDownInPreviousFrame = true
+            return true
+        end
+        controls.upWasDownInPreviousFrame = true
+    else
+        controls.upWasDownInPreviousFrame = false
+    end
+
+    return false
 end
 
-controls.inDownClicked = function()
+controls.isDownClicked = function()
+    local joystickDownDown = false
+    local keyboardDownDown = false
+
+    if joystick ~= nil then
+        if joystick:getGamepadAxis("lefty") > 0.5 or joystick:isGamepadDown("dpdown") then
+            joystickDownDown = true
+        end
+    end
+
+    if love.keyboard.isDown("s") then
+        keyboardDownDown = true
+    end
+
+    if joystickDownDown or keyboardDownDown then
+        if not controls.downWasDownInPreviousFrame then
+            controls.downWasDownInPreviousFrame = true
+            return true
+        end
+        controls.downWasDownInPreviousFrame = true
+    else
+        controls.downWasDownInPreviousFrame = false
+    end
+
+    return false
 end
 
 
@@ -112,13 +235,44 @@ controls.isJumpPressed = function()
     end
 
     if joystickJumpDown or keyboardJumpDown then
-        if not jumpButtonWasDownInPreviousFrame then
-            jumpButtonWasDownInPreviousFrame = true
+        if not controls.jumpButtonWasDownInPreviousFrame then
+            controls.jumpButtonWasDownInPreviousFrame = true
             return true
         end
-        jumpButtonWasDownInPreviousFrame = true
+        controls.jumpButtonWasDownInPreviousFrame = true
     else
-        jumpButtonWasDownInPreviousFrame = false
+        controls.jumpButtonWasDownInPreviousFrame = false
+    end
+
+    return false
+end
+
+controls.isMenuSelectPressed = function()
+    local joystickSelectDown = false
+    local keyboardSelectDown = false
+    local mouseSelectDown = false
+
+    if joystick ~= nil then
+        if joystick:isGamepadDown("a") then
+            joystickSelectDown =  true
+        end
+    end
+
+    if love.mouse.isDown(1) then
+        mouseSelectDown = true
+    end
+
+    if love.keyboard.isDown("return") then
+        keyboardSelectDown = true
+    end
+
+    if joystickSelectDown or keyboardSelectDown or mouseSelectDown then
+        if not controls.selectButtonDownInPreviousFrame then
+            controls.selectButtonDownInPreviousFrame = true
+            return true
+        end
+    else
+        controls.selectButtonDownInPreviousFrame = false
     end
 
     return false
@@ -140,13 +294,13 @@ controls.isDashPressed = function()
     end
 
     if joystickDashDown or keyboardDashDown then
-        if not dashButtonWasDownInPreviousFrame then
-            dashButtonWasDownInPreviousFrame = true
+        if not controls.dashButtonWasDownInPreviousFrame then
+            controls.dashButtonWasDownInPreviousFrame = true
             return true
         end
-        dashButtonWasDownInPreviousFrame = true
+        controls.dashButtonWasDownInPreviousFrame = true
     else
-        dashButtonWasDownInPreviousFrame = false
+        controls.dashButtonWasDownInPreviousFrame = false
     end
 
     return false
