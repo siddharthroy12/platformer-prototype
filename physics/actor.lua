@@ -30,10 +30,14 @@ function Actor:new(position)
         timeSinceLastTimeOnGround = 0,
         timeSinceLastJumped = 0,
         wallJumped = false,
+        dead = false,
     }
     setmetatable(o, self)
     self.__index = self
     return o
+end
+
+function Actor:onKill()
 end
 
 function Actor:getRect(half)
@@ -46,7 +50,7 @@ function Actor:getRect(half)
     return rect
 end
 
-function Actor:canMove(axis, step, halfHitbox)
+function Actor:canMove(axis, step, halfHitbox, canKill)
     local prevPos = { x = self.position.x, y = self.position.y }
     self.position[axis] = prevPos[axis] + step
 
@@ -70,6 +74,10 @@ function Actor:canMove(axis, step, halfHitbox)
         local colliding = rectangle.checkCollision(self:getRect(halfHitbox), physicsworld.solids[i]:getRect())
 
         if colliding then
+            if physicsworld.solids[i].tag == "Hurt" and canKill and not self.dead then
+                self.dead = true
+                self:onKill()
+            end
             self.position = prevPos
             return false
         end
@@ -94,7 +102,7 @@ function Actor:moveAndCollide(dest)
     local collided = false
     
     -- Move in x axis
-    while (dest.x ~= self.position.x and self:canMove("x", stepX)) do
+    while (dest.x ~= self.position.x and self:canMove("x", stepX, false, true)) do
         self.position.x = self.position.x + stepX
         moved = true
     end
@@ -105,7 +113,7 @@ function Actor:moveAndCollide(dest)
     end
 
     -- Move in y axis
-    while (dest.y ~= self.position.y and self:canMove("y", stepY)) do
+    while (dest.y ~= self.position.y and self:canMove("y", stepY, false, true)) do
         self.position.y = self.position.y + stepY
         moved = true
     end

@@ -5,6 +5,7 @@ function Solid:new(position)
     local o = {
         position = position or {x=0, y=0},
         hitbox = {x = 32, y = 32},
+        tag = "Normal"
     }
     setmetatable(o, self)
     self.__index = self

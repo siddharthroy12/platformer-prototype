@@ -14,7 +14,7 @@ local transition = require "transition"
 local currentLevel = nil
 local gamescene = {}
 local paused = false
-
+local tileIdToEnum = {}
 
 local buttons = {
     {
@@ -48,8 +48,16 @@ end
 
 function ldtk.onLayer(layer)
     currentLevel = layer
+    for i=1, #ldtk.tilesets[1].enumTags do
+        for j=1, #ldtk.tilesets[1].enumTags[i]["tileIds"] do
+            tileIdToEnum[ldtk.tilesets[1].enumTags[i]["tileIds"][j]] = ldtk.tilesets[1].enumTags[i]["enumValueId"]
+        end
+    end
     for i=1, #currentLevel.tiles do
-        table.insert(physicsworld.solids, Solid:new(vector.new( currentLevel.tiles[i]['px'][1]*2, currentLevel.tiles[i]['px'][2]*2)))
+        local solid = Solid:new(vector.new( currentLevel.tiles[i]['px'][1]*2, currentLevel.tiles[i]['px'][2]*2))
+        solid.tag = tileIdToEnum[currentLevel.tiles[i]['t']]
+        print(currentLevel.tiles[i]['t'])
+        table.insert(physicsworld.solids, solid)
     end
 end
 
@@ -64,6 +72,11 @@ function gamescene.init()
     ldtk:goTo(1)
     paused = false
     player.init()
+    function player.actor:onKill()
+        transition.start(function () 
+            scenemanager:changeScene(gamescene)
+        end)
+    end
 end
 
 function gamescene.loadLevel()
