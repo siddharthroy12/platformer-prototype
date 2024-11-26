@@ -6,8 +6,8 @@ player = {
     actor = nil
 }
 
-player.init = function()
-    player.actor = Actor:new(vector.new(32*5,32*5))
+player.init = function(position)
+    player.actor = Actor:new(position)
 end
 
 player.draw = function()

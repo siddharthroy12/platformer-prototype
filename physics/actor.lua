@@ -1,3 +1,4 @@
+require "settings"
 local vector = require "math/vector"
 local rectangle = require "math/rectangle"
 local physicsworld = require "physics/phyiscsworld"
@@ -7,7 +8,7 @@ function Actor:new(position)
     local o = {
         position = position or {x=50, y=50},
         velocity = {x=0, y=0},
-        hitbox = {x = 32, y = 32},
+        hitbox = {x = 32, y = 30},
         gravity = {x = 0, y = 1500},
         jumpforce = 400,
         jumpPressedOn = 0,
@@ -69,15 +70,20 @@ function Actor:canMove(axis, step, halfHitbox, canKill)
         self.position[axis] = prevPos[axis] + step
     end
 
+    if (self.position.x - (self.hitbox.x / 2) < 0 or self.position.x + (self.hitbox.x / 2) > CANVAS_WIDTH) then
+        self.position = prevPos
+        return false
+    end
 
     for i=1, #physicsworld.solids do
         local colliding = rectangle.checkCollision(self:getRect(halfHitbox), physicsworld.solids[i]:getRect())
+        
+        if physicsworld.solids[i].tag == "Hurt" and canKill and not self.dead and colliding then
+            self.dead = true
+            self:onKill()
+        end
 
-        if colliding then
-            if physicsworld.solids[i].tag == "Hurt" and canKill and not self.dead then
-                self.dead = true
-                self:onKill()
-            end
+        if colliding and physicsworld.solids[i].tag ~= "Hurt" then
             self.position = prevPos
             return false
         end
@@ -143,6 +149,9 @@ function Actor:isTouchingWall()
 end
 
 function Actor:update()
+    if self.dead then
+        return
+    end
     self.wantToGo = vector.new(0, 0)
     local collided = self:moveAndCollide(vector.add(self.position, vector.scale(self.velocity, love.timer.getDelta())))
 
