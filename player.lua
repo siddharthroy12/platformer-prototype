@@ -13,12 +13,20 @@ end
 player.draw = function()
     love.graphics.setColor(1,1,1)
 
-    transformed_hitbox = {x= player.actor.hitbox.x, y=player.actor.hitbox.y}
-    transformed_hitbox = vector.add(player.actor.hitbox, {y=math.max(1, math.abs(player.actor.velocity.y / 100)), x=-math.max(1, math.abs(player.actor.velocity.y / 100))})
+    transformed_hitbox = {x= player.actor.hitbox.width, y=player.actor.hitbox.height}
+    transformed_hitbox = vector.add({x= player.actor.hitbox.width, y=player.actor.hitbox.height}, {y=math.max(1, math.abs(player.actor.velocity.y / 100)), x=-math.max(1, math.abs(player.actor.velocity.y / 100))})
     transformed_hitbox = vector.add(transformed_hitbox, {y=math.max(1, -math.abs(player.actor.velocity.x / 80)), x=math.max(1, math.abs(player.actor.velocity.x / 80))})
 
     rectangle_pos = (vector.subtract(player.actor.position, vector.divide(transformed_hitbox, 2)))
     love.graphics.rectangle("fill", rectangle_pos.x, rectangle_pos.y,transformed_hitbox.x, transformed_hitbox.y)
+
+end
+
+player.drawHitbox = function()
+    love.graphics.setColor(1,0,0)
+    local rect = player.actor:getGlobalHitboxRect(player.actor.rightWallTouchHitbox)
+
+    love.graphics.rectangle("line", rect.x, rect.y, rect.width, rect.height)
 end
 
 player.update = function()

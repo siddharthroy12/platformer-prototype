@@ -62,7 +62,7 @@ function ldtk.onLayer(layer)
         end
     end
     for i=1, #currentLevel.tiles do
-        local solid = Solid:new(vector.new( currentLevel.tiles[i]['px'][1]*2, currentLevel.tiles[i]['px'][2]*2))
+        local solid = Solid:new(vector.new( currentLevel.tiles[i]['px'][1]*2 +16, currentLevel.tiles[i]['px'][2]*2 + 16))
         solid.tag = tileIdToEnum[currentLevel.tiles[i]['t']]
         table.insert(physicsworld.solids, solid)
     end
