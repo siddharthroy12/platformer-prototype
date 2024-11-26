@@ -15,7 +15,7 @@ end
 
 controls.isLeftDown = function()
     if joystick ~= nil then
-        if joystick:getGamepadAxis("leftx") < -0 or joystick:isGamepadDown("dpleft") then
+        if joystick:getGamepadAxis("leftx") < -0.5 or joystick:isGamepadDown("dpleft") then
             return true
         end
     end
@@ -29,7 +29,7 @@ end
 
 controls.isRightDown = function()
     if joystick ~= nil then
-        if joystick:getGamepadAxis("leftx") > 0 or joystick:isGamepadDown("dpright") then
+        if joystick:getGamepadAxis("leftx") > 0.5 or joystick:isGamepadDown("dpright") then
             return true
         end
     end
@@ -43,7 +43,7 @@ end
 
 controls.isUpDown = function()
     if joystick ~= nil then
-        if joystick:getGamepadAxis("lefty") < -0 or joystick:isGamepadDown("dpup") then
+        if joystick:getGamepadAxis("lefty") < -0.5 or joystick:isGamepadDown("dpup") then
             return true
         end
     end
@@ -57,7 +57,7 @@ end
 
 controls.isDownDown = function()
     if joystick ~= nil then
-        if joystick:getGamepadAxis("lefty") > 0 or joystick:isGamepadDown("dpdown") then
+        if joystick:getGamepadAxis("lefty") > 0.5 or joystick:isGamepadDown("dpdown") then
             return true
         end
     end
@@ -71,7 +71,7 @@ end
 
 controls.isGrabDown = function()
     if joystick ~= nil then
-        if joystick:getGamepadAxis("triggerleft") > 0 or joystick:getGamepadAxis("triggerright") > 0.2 then
+        if joystick:getGamepadAxis("triggerleft") > 0.5 or joystick:getGamepadAxis("triggerright") > 0.5 then
             return true
         end
     end
@@ -88,7 +88,7 @@ controls.isLeftClicked = function()
     local keyboardLeftDown = false
 
     if joystick ~= nil then
-        if joystick:getGamepadAxis("leftx") < -0 or joystick:isGamepadDown("dpleft") then
+        if joystick:getGamepadAxis("leftx") < -0.5 or joystick:isGamepadDown("dpleft") then
             joystickLeftDown = true
         end
     end
@@ -115,7 +115,7 @@ controls.isRightClicked = function()
     local keyboardRightDown = false
 
     if joystick ~= nil then
-        if joystick:getGamepadAxis("leftx") > 0 or joystick:isGamepadDown("dpright") then
+        if joystick:getGamepadAxis("leftx") > 0.5 or joystick:isGamepadDown("dpright") then
             joystickRightDown = true
         end
     end
@@ -169,7 +169,7 @@ controls.isUpClicked = function()
     local keyboardUpDown = false
 
     if joystick ~= nil then
-        if joystick:getGamepadAxis("lefty") < -0 or joystick:isGamepadDown("dpup") then
+        if joystick:getGamepadAxis("lefty") < -0.5 or joystick:isGamepadDown("dpup") then
             joystickUpDown = true
         end
     end
@@ -196,7 +196,7 @@ controls.isDownClicked = function()
     local keyboardDownDown = false
 
     if joystick ~= nil then
-        if joystick:getGamepadAxis("lefty") > 0 or joystick:isGamepadDown("dpdown") then
+        if joystick:getGamepadAxis("lefty") > 0.5 or joystick:isGamepadDown("dpdown") then
             joystickDownDown = true
         end
     end
